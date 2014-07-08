@@ -1,0 +1,78 @@
+<project name="AntlrTestRig++" default="compile" basedir=".">
+	<target name="init">
+		<tstamp />
+		<property name="source" value="source" />
+		<property name="test-source" value="test-source" />
+		<property name="build" value="build" />
+		<property name="test-build" value="test-build" />
+		<property name="grammar" value="grammar" />
+		<property name="antlr.build" value="${test-source}" />
+		<property name="dist" value="dist" />
+		<property name="lib" value="lib" />
+		<property name="package" value="org.cstaylor.antlr4.utils.test" />
+		<property name="package-dir" value="org/cstaylor/antlr4/utils/test" />
+	</target>
+
+	<target name="antlr" depends="init">
+		<java classname="org.antlr.v4.Tool" fork="true" failonerror="true">
+			<arg value="-o" />
+			<arg value="${antlr.build}/${package-dir}" />
+			<arg value="-package" />
+			<arg value="${package}" />
+			<arg value="-long-messages" />
+			<arg value="-lib" />
+			<arg value="${grammar}" />
+			<arg value="${grammar}/PropertyFile.g4" />
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+
+	<target name="compile" depends="antlr">
+		<mkdir dir="${build}" />
+		<mkdir dir="${test-build}" />
+		<javac destdir="${build}" deprecation="on" debug="${DEBUG}" source="1.7" target="1.7" encoding="UTF-8">
+			<src path="${source}" />
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+		<javac destdir="${test-build}" deprecation="on" debug="${DEBUG}" source="1.7" target="1.7" encoding="UTF-8">
+			<src path="${test-source}" />
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+				<pathelement path="${build}"/>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="run" depends="compile">
+		<copy todir="${test-build}" encoding="UTF-8">
+			<fileset dir="${test-source}">
+				<include name="**/*.properties" />
+				<include name="**/*.tokens" />
+			</fileset>
+		</copy>
+		<java classname="org.cstaylor.antlr4.utils.test.ProgrammaticTestRigRunner" fork="true" failonerror="true">
+			<classpath>
+				<fileset dir="${lib}">
+					<include name="**/*.jar" />
+				</fileset>
+				<pathelement path="${build}"/>
+				<pathelement path="${test-build}"/>
+			</classpath>
+		</java>
+	</target>
+
+	<target name="clean" depends="init">
+		<delete dir="${build}" />
+		<delete dir="${test-build}" />
+	</target>
+</project>
